@@ -2,6 +2,12 @@
 
 (defpackage #:planner/file-ops
   (:use #:cl #:planner/data-structures)
+  (:documentation "Provides generic functions for saving and loading Lisp data to/from files.
+This module uses a simple text-based serialization approach with `prin1` and `read`,
+where each Lisp object is written on a new line. This is suitable for relatively simple
+data structures and is human-readable to some extent, but may not be robust for
+complex objects or across different Lisp implementations if type information is critical
+and not self-evident from the printed representation.")
   (:export #:save-data
            #:load-data))
 
@@ -9,8 +15,10 @@
 
 (defun save-data (list-of-items filepath)
   "Saves a list of Lisp objects to a file, one item per line.
-   Uses prin1 for serialization. Overwrites the file if it exists.
-   Returns t on success, nil on failure."
+   Uses `prin1` for serialization, which prints the object in a Lisp-readable format.
+   Overwrites the file if it exists (`:if-exists :supersede`).
+   Creates the file if it does not exist (`:if-does-not-exist :create`).
+   Returns `t` on successful save, `nil` on failure (e.g., file errors)."
   (handler-case
       (with-open-file (stream filepath
                               :direction :output
@@ -31,11 +39,13 @@
       nil)))
 
 (defun load-data (filepath)
-  "Loads a list of Lisp objects from a file.
-   Expects one S-expression per line, as saved by save-data.
-   Returns the list of objects, or nil if the file does not exist or an error occurs."
+  "Loads a list of Lisp objects from a file previously saved by `save-data`.
+   Expects one Lisp S-expression per line, readable by `read`.
+   Returns the list of loaded objects.
+   Returns `nil` if the file does not exist, cannot be opened, or if a read error occurs
+   (other than a clean end-of-file)."
   (handler-case
-      (unless (probe-file filepath)
+      (unless (probe-file filepath) ; Check if file exists before trying to open
         (warn "LOAD-DATA: File ~S does not exist." filepath)
         (return-from load-data nil))
       (with-open-file (stream filepath
