@@ -21,13 +21,34 @@ The "command-line mode" for the Common Lisp Planner is not a typical OS shell co
 
 To start the planner in its interactive command-line mode, follow these steps:
 
-1.  **Start a Common Lisp REPL:** Open your preferred Common Lisp environment (e.g., SBCL, CLISP, CCL).
-2.  **Load the application:** Within the REPL, load the main application file using a Lisp command. Typically, this would be something like:
+1.  **Start your Common Lisp REPL:** Open your preferred Common Lisp environment (e.g., SBCL, CLISP, CCL).
+2.  **Navigate to the Project Root:** Ensure your REPL's current directory is the project root (`common-lisp-planner/`). You can usually do this with a command like `(uiop:chdir "/path/to/common-lisp-planner/")` or specific commands for your Lisp environment (e.g., `:cd /path/to/common-lisp-planner/` in SLIME).
+3.  **Load Core Files:** Load the necessary source files in the correct order. If you are loading manually, the general order from the `src/` directory should be:
+    *   `data-structures.lisp`
+    *   `file-ops.lisp`
+    *   `i18n.lisp` (for internationalization)
+    *   `config.lisp` (for language configuration management)
+    *   Followed by modules like `calendar.lisp`, `todo.lisp`, `locations.lisp`, `notes.lisp`, `materials.lisp`.
+    *   Finally, load the main application file: `(load "src/main.lisp")`
+    
+    Example sequence in your REPL (assuming your REPL's current directory is the project root):
     ```lisp
-    (load "path/to/common-lisp-planner/src/main.lisp")
+    (load "src/data-structures.lisp")
+    (load "src/file-ops.lisp")
+    (load "src/i18n.lisp")
+    (load "src/config.lisp")
+    (load "src/calendar.lisp")
+    (load "src/todo.lisp")
+    (load "src/locations.lisp")
+    (load "src/notes.lisp")
+    (load "src/materials.lisp")
+    ;; ... ensure all other individual modules from src/ are loaded ...
+    (load "src/main.lisp")
     ```
-    *(Ensure you replace `"path/to/common-lisp-planner/"` with the actual path to the project on your system.)*
-3.  **Start the planner application:** After the code is loaded, execute the main startup function by typing the following into the REPL:
+    *(Note: Using an ASDF system definition is recommended for more robust dependency handling in larger Lisp projects, as this manual loading order can be error-prone.)*
+
+4.  **Start the Planner:**
+    Once all files are loaded, start the planner's CLI by running:
     ```lisp
     (planner-app:start-planner)
     ```
