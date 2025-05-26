@@ -73,7 +73,50 @@
           (is (string= (planner/calendar:event-title refetched-event) new-title))
           (is (= (planner/calendar:event-start-time refetched-event) new-time))))
       ;; Test editing non-existent event
-      (is (null (planner/calendar:edit-event 999 :title "Does not exist"))))))
+      (is (null (planner/calendar:edit-event 999 :title "Does not exist"))))
+
+    (is (string= "Test partial updates: only some fields change, others remain the same."
+                 "Test partial updates: only some fields change, others remain the same.")
+        "Scenario: Partial update of an event")
+    (with-clean-calendar-data ; Reset for this specific scenario if needed, though test-edit-event already does it
+      (let* ((original-title "Partial Original Title")
+             (original-desc "Partial Original Description")
+             (original-start-time (+ (get-universal-time) 5000))
+             (original-end-time (+ (get-universal-time) 8600)) ; + 1 hour from start
+             (original-loc-id 101)
+             (event (planner/calendar:add-event :title original-title
+                                               :description original-desc
+                                               :start-time original-start-time
+                                               :end-time original-end-time
+                                               :location-id original-loc-id)))
+        (is (not (null event)))
+        (let ((event-id (planner/calendar:event-id event))
+              (new-partial-title "Partial New Title")
+              (new-partial-desc "Partial New Description"))
+
+          ;; Edit only title and description
+          (let ((partially-edited-event (planner/calendar:edit-event event-id
+                                                                   :title new-partial-title
+                                                                   :description new-partial-desc)))
+            (is (not (null partially-edited-event)))
+            ;; Check edited fields
+            (is (string= (planner/calendar:event-title partially-edited-event) new-partial-title))
+            (is (string= (planner/calendar:event-description partially-edited-event) new-partial-desc))
+            ;; Check UNCHANGED fields
+            (is (= (planner/calendar:event-start-time partially-edited-event) original-start-time))
+            (is (= (planner/calendar:event-end-time partially-edited-event) original-end-time))
+            (is (= (planner/calendar:event-location-id partially-edited-event) original-loc-id)))
+          
+          ;; Verify changes are persistent and unchanged fields remain so after refetching
+          (let ((refetched-event (planner/calendar:find-event event-id)))
+            (is (not (null refetched-event)))
+            ;; Check edited fields
+            (is (string= (planner/calendar:event-title refetched-event) new-partial-title))
+            (is (string= (planner/calendar:event-description refetched-event) new-partial-desc))
+            ;; Check UNCHANGED fields
+            (is (= (planner/calendar:event-start-time refetched-event) original-start-time))
+            (is (= (planner/calendar:event-end-time refetched-event) original-end-time))
+            (is (= (planner/calendar:event-location-id refetched-event) original-loc-id))))))))
 
 (test test-remove-event
   "Test removing events from the calendar."
