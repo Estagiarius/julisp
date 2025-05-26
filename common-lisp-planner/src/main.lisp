@@ -120,6 +120,8 @@ Returns the argument value if found, otherwise `default` (which is `nil` if not 
   (format t "  upcoming-events [--hours <N>] (default 24h)~%")
   (format t "  add-task --desc <desc> [--due <YYYY-MM-DD>] [--prio <N>] [--notes <notes>]~%")
   (format t "  view-tasks [--sort-by <id|due-date|priority>] [--filter-status <pending|completed>] [--filter-prio <N>]~%")
+  (format t "  edit-task --id <id> [--desc <desc>] [--due <date/time>] [--prio <prio>] [--notes <notes>] [--status <status>]~%")
+  (format t "  remove-task --id <id>~%")
   (format t "  complete-task <id>~%")
   (format t "  set-task-prio <id> <priority>~%")
   (format t "  pending-tasks~%")
@@ -132,6 +134,8 @@ Returns the argument value if found, otherwise `default` (which is `nil` if not 
   (format t "  add-material --name <name> --path <path> [--cat <category>]~%")
   (format t "  view-materials [--cat <category>]~%")
   (format t "  event-counts [--past-days <N>] [--future-days <N>]~%")
+  (format t "  edit-event --id <id> [--title <title>] [--start <date/time>] [--end <date/time>] [--desc <desc>] [--loc-id <loc-id>]~%")
+  (format t "  remove-event --id <id>~%")
   (format t "  help~%")
   (format t "  quit / exit~%"))
 
@@ -179,6 +183,84 @@ Prints success or error messages."
             (format t "Event added with ID ~A.~%" (planner/calendar:event-id event))
             (format t "Error: Could not add event.~%"))))))
 
+(defun handle-edit-event (args)
+  "Handles the 'edit-event --id <id> [--title ...] ...' command.
+Updates an existing event's attributes. At least one optional attribute must be provided.
+Required:
+  --id <id>: Integer ID of the event to edit.
+Optional:
+  --title <title>: New title.
+  --start <YYYY-MM-DD HH:MM>: New start date/time.
+  --end <YYYY-MM-DD HH:MM>: New end date/time.
+  --desc <description>: New description.
+  --loc-id <location-id>: New integer ID of an existing location.
+Prints success or error messages."
+  (let ((id-str (get-arg args :id))
+        (event-id nil)
+        (call-args (list))
+        (changes-made nil)) ; Flag to check if any valid change was provided
+
+    (unless id-str
+      (format t "Error: --id is required for edit-event.~%")
+      (return-from handle-edit-event))
+    (setf event-id (parse-integer-arg id-str "event ID"))
+    (unless event-id
+      (return-from handle-edit-event)) ; parse-integer-arg prints its own error
+
+    ;; Optional arguments
+    (when-let ((title (get-arg args :title)))
+      (setf call-args (list* :title title call-args) changes-made t))
+
+    (when-let ((start-str (get-arg args :start)))
+      (let ((start-time (parse-datetime-string start-str)))
+        (if start-time
+            (setf call-args (list* :start-time start-time call-args) changes-made t)
+            (progn (format t "Error: Invalid --start date/time format. Event not updated.~%")
+                   (return-from handle-edit-event)))))
+
+    (when-let ((end-str (get-arg args :end)))
+      (let ((end-time (parse-datetime-string end-str)))
+        (if end-time
+            (setf call-args (list* :end-time end-time call-args) changes-made t)
+            (progn (format t "Error: Invalid --end date/time format. Event not updated.~%")
+                   (return-from handle-edit-event)))))
+
+    (when-let ((description (get-arg args :desc))) ; :desc for input, :description for backend
+      (setf call-args (list* :description description call-args) changes-made t))
+
+    (when-let ((loc-id-str (get-arg args :loc-id)))
+      (let ((loc-id (parse-integer-arg loc-id-str "location ID")))
+        (if loc-id
+            (setf call-args (list* :location-id loc-id call-args) changes-made t)
+            (progn (format t "Error: Invalid --loc-id format. Event not updated.~%")
+                   (return-from handle-edit-event)))))
+    
+    (unless changes-made
+      (format t "Error: No valid fields provided to update for event ~A.~%" event-id)
+      (return-from handle-edit-event))
+
+    (if (apply #'planner/calendar:edit-event event-id (nreverse call-args))
+        (format t "Event ~A updated successfully.~%" event-id)
+        (format t "Event ~A not found or not updated (it might already have the specified values or ID is invalid).~%" event-id))))
+
+(defun handle-remove-event (args)
+  "Handles the 'remove-event --id <id>' command.
+Removes an event by its ID.
+Required:
+  --id <id>: Integer ID of the event to remove.
+Prints success or error messages."
+  (let ((id-str (get-arg args :id)))
+    (unless id-str
+      (format t "Error: --id is required for remove-event.~%")
+      (return-from handle-remove-event))
+    (let ((event-id (parse-integer-arg id-str "event ID")))
+      (unless event-id
+        (return-from handle-remove-event)) ; parse-integer-arg prints its own error
+
+      (if (planner/calendar:remove-event event-id)
+          (format t "Event ~A removed successfully.~%" event-id)
+          (format t "Event ~A not found or could not be removed.~%" event-id)))))
+
 (defun handle-add-task (args)
   "Handles the 'add-task' command.
 Expects arguments via --key value pairs:
@@ -217,6 +299,86 @@ Prints success or error messages."
         (if task
             (format t "Task added with ID ~A.~%" (planner/todo:task-id task))
             (format t "Error: Could not add task.~%"))))))
+
+(defun handle-edit-task (args)
+  "Handles the 'edit-task --id <id> [--desc ...] ...' command.
+Updates an existing task's attributes. At least one optional attribute must be provided.
+Required:
+  --id <id>: Integer ID of the task to edit.
+Optional:
+  --desc <description>: New description.
+  --due <YYYY-MM-DD HH:MM>: New due date/time.
+  --prio <priority>: New integer priority.
+  --notes <notes>: New notes.
+  --status <status>: New status (e.g., 'pending', 'completed').
+Prints success or error messages."
+  (let ((id-str (get-arg args :id))
+        (task-id nil)
+        (call-args (list))
+        (changes-made nil))
+
+    (unless id-str
+      (format t "Error: --id is required for edit-task.~%")
+      (return-from handle-edit-task))
+    (setf task-id (parse-integer-arg id-str "task ID"))
+    (unless task-id
+      (return-from handle-edit-task)) ; parse-integer-arg prints its own error
+
+    ;; Optional arguments
+    (when-let ((description (get-arg args :desc)))
+      (setf call-args (list* :description description call-args) changes-made t))
+
+    (when-let ((due-str (get-arg args :due)))
+      (let ((due-date (parse-datetime-string due-str)))
+        (if due-date
+            (setf call-args (list* :due-date due-date call-args) changes-made t)
+            (progn (format t "Error: Invalid --due date/time format. Task not updated.~%")
+                   (return-from handle-edit-task)))))
+
+    (when-let ((prio-str (get-arg args :prio)))
+      (let ((priority (parse-integer-arg prio-str "priority")))
+        (if priority
+            (setf call-args (list* :priority priority call-args) changes-made t)
+            (progn (format t "Error: Invalid --prio format. Task not updated.~%")
+                   (return-from handle-edit-task)))))
+    
+    (when-let ((notes (get-arg args :notes)))
+      (setf call-args (list* :notes notes call-args) changes-made t))
+
+    (when-let ((status-str (get-arg args :status)))
+      (let ((lower-status-str (string-downcase status-str)))
+        (if (or (string= lower-status-str "pending") (string= lower-status-str "completed"))
+            (let ((status-keyword (intern (string-upcase status-str) :keyword)))
+              (setf call-args (list* :status status-keyword call-args) changes-made t))
+            (progn
+              (format t "Error: Invalid status value '~A'. Must be 'pending' or 'completed'. Task not updated.~%" status-str)
+              (return-from handle-edit-task)))))
+            
+    (unless changes-made
+      (format t "Error: No valid fields provided to update for task ~A.~%" task-id)
+      (return-from handle-edit-task))
+
+    (if (apply #'planner/todo:edit-task task-id (nreverse call-args))
+        (format t "Task ~A updated successfully.~%" task-id)
+        (format t "Task ~A not found or not updated (it might already have the specified values or ID is invalid).~%" task-id))))
+
+(defun handle-remove-task (args)
+  "Handles the 'remove-task --id <id>' command.
+Removes a task by its ID.
+Required:
+  --id <id>: Integer ID of the task to remove.
+Prints success or error messages."
+  (let ((id-str (get-arg args :id)))
+    (unless id-str
+      (format t "Error: --id is required for remove-task.~%")
+      (return-from handle-remove-task))
+    (let ((task-id (parse-integer-arg id-str "task ID")))
+      (unless task-id
+        (return-from handle-remove-task)) ; parse-integer-arg prints its own error
+
+      (if (planner/todo:remove-task task-id)
+          (format t "Task ~A removed successfully.~%" task-id)
+          (format t "Task ~A not found or could not be removed.~%" task-id)))))
 
 (defun handle-view-tasks (args)
   "Handles the 'view-tasks' command.
@@ -523,6 +685,8 @@ Type 'help' for available commands, 'quit' or 'exit' to terminate."
                 ((string-equal command "upcoming-events") (handle-get-upcoming-events cmd-args))
                 ((string-equal command "add-task") (handle-add-task cmd-args))
                 ((string-equal command "view-tasks") (handle-view-tasks cmd-args))
+                ((string-equal command "edit-task") (handle-edit-task cmd-args))
+                ((string-equal command "remove-task") (handle-remove-task cmd-args))
                 ((string-equal command "complete-task") (handle-mark-task-completed cmd-args))
                 ((string-equal command "set-task-prio") (handle-set-task-priority cmd-args))
                 ((string-equal command "pending-tasks") (handle-get-pending-tasks-summary cmd-args))
@@ -535,6 +699,8 @@ Type 'help' for available commands, 'quit' or 'exit' to terminate."
                 ((string-equal command "add-material") (handle-add-material cmd-args))
                 ((string-equal command "view-materials") (handle-view-materials cmd-args))
                 ((string-equal command "event-counts") (handle-get-event-counts cmd-args))
+                ((string-equal command "edit-event") (handle-edit-event cmd-args))
+                ((string-equal command "remove-event") (handle-remove-event cmd-args))
                 ((string-equal command "quit") (handle-quit) (return))
                 ((string-equal command "exit") (handle-quit) (return))
                 (t (format t "Unknown command: '~A'. Type 'help' for available commands.~%" command))))
