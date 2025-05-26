@@ -1,115 +1,43 @@
-# Common Lisp Planner - A CLI Application
+# Common Lisp Planner
 
-## Overview
+## Project Overview
 
-The Common Lisp Planner is a command-line interface (CLI) application designed to help users manage events, tasks, notes, locations, and materials. It provides functionalities to add, view, and manage various aspects of personal or project planning, all within a Lisp REPL environment. Data is persisted to `.dat` files in the `data/` directory.
+The Common Lisp Planner is an application written in Common Lisp designed to help users manage various aspects of their lives, including events, tasks, notes, locations, and materials.
 
-## Features
+### File Structure
 
-*   **Calendar Management:** Add, find, edit, remove, and view events (day, week, month). Get reminders for upcoming events.
-*   **To-Do List:** Add, find, edit, remove, and mark tasks as complete. Set task priorities. View tasks with filtering and sorting. Get summaries of pending/overdue tasks.
-*   **Notes:** Add, find, categorize, and view notes. Search notes by category or content.
-*   **Locations:** Manage location metadata for events.
-*   **Materials:** Manage metadata for related files or materials.
-*   **CLI Access:** All functionalities are accessible via a dedicated command-line interface running within the Lisp REPL.
-*   **Basic Statistics:** Get counts of past/future events and statistics on task completion.
-*   **Simple Reminders:** Identify upcoming events and pending/overdue tasks.
-*   **Data Persistence:** Planner data is saved to and loaded from files.
+The project follows a standard directory layout:
 
-## Dependencies
+-   `src/`: Contains all the Common Lisp source code files.
+    -   `main.lisp`: This file, located within `src/`, serves as the primary entry point for the application, especially for its command-line interface (CLI) and overall startup.
+-   `data/`: This directory is designated for storing data files used by the application. These files typically have a `.dat` extension.
+-   `tests/`: Contains unit tests for the project to ensure code quality and functionality.
 
-*   **Common Lisp Implementation:** A standard Common Lisp implementation such as SBCL (Steel Bank Common Lisp) or CCL (Clozure Common Lisp).
-*   **Quicklisp:** The de facto library manager for Common Lisp, used to load project dependencies.
-*   **`local-time` library:** Used for robust date and time parsing in the CLI. Loaded via Quicklisp.
-*   **`fiveam` library:** A testing framework used for unit tests. Loaded via Quicklisp.
+## Command-Line Operation
 
-## Setup
+The "command-line mode" for the Common Lisp Planner is not a typical OS shell command that you run directly (e.g., `./planner --add-event`). Instead, it operates as an interactive session within a Common Lisp Read-Eval-Print Loop (REPL).
 
-1.  **Clone the Repository:**
-    ```bash
-    git clone <repository-url>
-    cd common-lisp-planner
-    ```
-2.  **Ensure Quicklisp is Installed:**
-    If you don't have Quicklisp, visit [quicklisp.org](https://www.quicklisp.org) for installation instructions.
+### Startup Process
 
-3.  **Load Dependencies:**
-    Dependencies (`local-time` and `fiveam`) are loaded automatically via `ql:quickload` when the relevant Lisp files are loaded:
-    *   `local-time` is loaded when `src/main.lisp` is compiled/loaded.
-    *   `fiveam` is loaded when `tests/packages.lisp` is compiled/loaded.
+To start the planner in its interactive command-line mode, follow these steps:
 
-## Running the Application
-
-1.  **Load the Main Application File:**
-    Start your Common Lisp REPL and load the main application file. Ensure your REPL's current directory is the project root (`common-lisp-planner/`).
+1.  **Start a Common Lisp REPL:** Open your preferred Common Lisp environment (e.g., SBCL, CLISP, CCL).
+2.  **Load the application:** Within the REPL, load the main application file using a Lisp command. Typically, this would be something like:
     ```lisp
-    (load "src/main.lisp")
+    (load "path/to/common-lisp-planner/src/main.lisp")
     ```
-    This will compile and load all necessary source files from the `src/` directory.
-
-2.  **Start the Planner:**
-    Once loaded, start the planner's CLI by running:
+    *(Ensure you replace `"path/to/common-lisp-planner/"` with the actual path to the project on your system.)*
+3.  **Start the planner application:** After the code is loaded, execute the main startup function by typing the following into the REPL:
     ```lisp
     (planner-app:start-planner)
     ```
-    You should see a welcome message and the `planner>` prompt.
 
-## CLI Usage
+### Interactive Session
 
-Type `help` at the `planner>` prompt for a comprehensive list of commands and their syntax.
+Once `(planner-app:start-planner)` is executed:
 
-**Examples:**
+-   A welcome message will be displayed in the REPL.
+-   The standard Lisp prompt will be replaced by a custom prompt: `planner>`.
+-   At this `planner>` prompt, users can type specific commands to interact with the application (e.g., `add-event`, `view-tasks`, `help`).
 
-*   Add a new event:
-    ```
-    planner> add-event --title "Team Meeting" --start "2024-01-15 10:00" --desc "Discuss project X"
-    ```
-*   View tasks, sorted by due date, filtering for pending tasks:
-    ```
-    planner> view-tasks --sort-by due-date --filter-status pending
-    ```
-*   Add a new note:
-    ```
-    planner> add-note --title "Shopping List" --content "Milk, Eggs, Bread"
-    ```
-*   View events for a specific day:
-    ```
-    planner> view-day 2024-01-15
-    ```
-
-## Running Tests
-
-1.  **Load the Test Setup File:**
-    In your Lisp REPL (from the project root):
-    ```lisp
-    (load "tests/packages.lisp")
-    ```
-    This will load FiveAM and the test definitions.
-
-2.  **Run All Tests:**
-    ```lisp
-    (planner-app/tests:run-all-tests)
-    ```
-    Test results will be printed to the REPL.
-
-## Project Structure
-
-*   **`src/`**: Contains the core Lisp source code for the planner.
-    *   `data-structures.lisp`: Defines common data structures (events, tasks, etc.).
-    *   `file-ops.lisp`: Handles saving and loading data to/from files.
-    *   `calendar.lisp`: Event management logic.
-    *   `todo.lisp`: Task management logic.
-    *   `locations.lisp`: Location management logic.
-    *   `notes.lisp`: Note management logic.
-    *   `materials.lisp`: Material metadata management logic.
-    *   `main.lisp`: Implements the Command Line Interface (CLI) and application entry point.
-*   **`data/`**: Default directory where data files (e.g., `events.dat`, `tasks.dat`) are stored. This directory is created automatically if it doesn't exist when data is first saved.
-*   **`tests/`**: Contains unit tests for the project.
-    *   `packages.lisp`: Defines the test package and test runner utilities.
-    *   `test-calendar.lisp`: Tests for the calendar module.
-    *   `test-todo.lisp`: Tests for the todo module.
-    *   *(Other test files for different modules would go here)*
-*   **`README.md`**: This file.
-
----
-*This project serves as a demonstration of building a CLI application in Common Lisp, covering various aspects of software development including modular design, data persistence, and unit testing.*
+The application will then parse these textual commands and call the appropriate internal Lisp functions to perform the requested actions, displaying results or further prompts as needed.
