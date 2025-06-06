@@ -29,7 +29,7 @@
       (is (= (length planner/calendar:*events*) 1))
       (is (eq (first planner/calendar:*events*) event))
       (is (string= (planner/calendar:event-title (first planner/calendar:*events*)) "Test Event 1"))
-      
+
       (let ((event2 (planner/calendar:add-event :title "Test Event 2"
                                                :start-time (+ (get-universal-time) 3600))))
         (is (not (null event2)))
@@ -66,7 +66,7 @@
           (is (string= (planner/calendar:event-title edited-event) new-title))
           (is (= (planner/calendar:event-start-time edited-event) new-time))
           (is (string= (planner/calendar:event-description edited-event) "New Description")))
-        
+
         ;; Verify changes are persistent in *events*
         (let ((refetched-event (planner/calendar:find-event event-id)))
           (is (not (null refetched-event)))
@@ -105,7 +105,7 @@
         (is (= (length upcoming-default) 2))
         (is (member event-upcoming-soon upcoming-default :test #'eq))
         (is (member event-upcoming-later upcoming-default :test #'eq)))
-      
+
       (let ((upcoming-1hr (planner/calendar:get-upcoming-events :within-hours 1)))
         (is (= (length upcoming-1hr) 1))
         (is (member event-upcoming-soon upcoming-1hr :test #'eq)))
@@ -116,7 +116,7 @@
         (is (= (length upcoming-after-string) 2)) ; Should still be 2, string time ignored
         (is (not (member-if (lambda (e) (string= (planner/calendar:event-title e) "String Time Event"))
                             upcoming-after-string))))
-      
+
       ;; Test with empty list
       (setf planner/calendar:*events* nil)
       (is (null (planner/calendar:get-upcoming-events))))))

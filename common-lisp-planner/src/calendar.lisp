@@ -27,7 +27,9 @@ based on time periods (day, week, month) and for upcoming event reminders.")
            ;; Reminder function
            #:get-upcoming-events
            ;; Statistics function
-           #:get-event-counts))
+           #:get-event-counts
+           ;; Function to get events for a day (for GUI)
+           #:get-events-for-day))
 
 (in-package #:planner/calendar)
 
@@ -217,7 +219,7 @@ Returns `(values)` (i.e., no specific useful value)."
     (warn "VIEW-EVENTS-FOR-DAY: date-universal-time must be an integer, but got ~S." date-universal-time)
     (return-from view-events-for-day))
   (let* ((date-str (universal-time-to-date-string date-universal-time))
-         (events-for-day (events-on-date date-universal-time *events*)))
+         (events-for-day (get-events-for-day date-universal-time))) ; Now uses the new function
     (format t "Events for ~A:~%" date-str)
     (if events-for-day
         (dolist (event events-for-day)
@@ -227,6 +229,17 @@ Returns `(values)` (i.e., no specific useful value)."
                   (event-id event)))
         (format t "No events for ~A.~%" date-str))
     (values)))
+
+(defun get-events-for-day (date-universal-time)
+  "Returns a list of event objects that occur on the given `date-universal-time`.
+`date-universal-time` is expected to be an integer (universal time).
+This function uses the internal helper `events-on-date`.
+Returns a list of event objects, or NIL if no events are found or the date is invalid."
+  (if (integerp date-universal-time)
+      (events-on-date date-universal-time *events*)
+      (progn
+        (warn "GET-EVENTS-FOR-DAY: date-universal-time must be an integer, but got ~S." date-universal-time)
+        nil)))
 
 
 ;;; Reminder Function
@@ -287,7 +300,7 @@ Returns a property list like `(:events-past-period count1 :events-future-period 
           (when (and (>= event-time current-time)
                      (<= event-time future-cutoff-time))
             (incf events-future-period)))))
-    
+
     (list :events-past-period events-past-period
           :events-future-period events-future-period)))
 
@@ -305,17 +318,17 @@ Returns `(values)`."
     (unless start-of-week
       (warn "VIEW-EVENTS-FOR-WEEK: Could not determine start of week.")
       (return-from view-events-for-week))
-      
+
     (format t "Events for the week starting ~A:~%" (universal-time-to-date-string start-of-week))
 
     (setf week-events
           (loop for event in *events*
-                when (and (event-start-time event) 
+                when (and (event-start-time event)
                           (integerp (event-start-time event))
                           (>= (event-start-time event) start-of-week)
                           (< (event-start-time event) end-of-week))
                 collect event))
-    
+
     (if week-events
         (let ((sorted-events (sort week-events #'< :key #'event-start-time)))
           (dolist (event sorted-events)

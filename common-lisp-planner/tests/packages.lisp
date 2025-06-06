@@ -42,9 +42,9 @@ and avoids side effects on actual data files."
      (flet ((planner/calendar:save-events ()
               ;; Mock implementation: Do nothing to avoid file I/O during tests.
               ;; Returns nil, assuming the original save-events returns t or nil.
-              nil)) 
+              nil))
        ;; Declare ignorable to suppress warnings if the mock is not called in all tests.
-       (declare (ignorable #'planner/calendar:save-events)) 
+       (declare (ignorable #'planner/calendar:save-events))
        ,@body)))
 
 ;; Helper macro for running todo tests with a clean data environment.

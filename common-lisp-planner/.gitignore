@@ -1,0 +1,42 @@
+# Common Lisp / SBCL compiled files
+*.fasl
+*.fas
+*.x86f
+*.x86_64f
+*.ppcf
+*.sbcl-error-locations
+*.sbcl-restart-locations
+*.image
+
+# Executables (adjust if different names are used)
+planner-cli
+planner-gui
+a.out
+
+# Application data directory
+# This directory stores runtime data like events.dat, tasks.dat, etc.
+# and should not typically be versioned if it contains user-specific data.
+data/
+
+# Common OS / Editor temporary files
+*~
+.*~
+*.swp
+.#*
+*.orig
+*.rej
+.DS_Store
+Thumbs.db
+
+# ASDF cache (usually in ~/.cache/common-lisp/asdf/)
+# but sometimes local _obj or similar might appear
+_obj/
+
+# Quicklisp local dists/software (should not be in project, but just in case)
+quicklisp-beta/
+dists/
+software/
+
+# Build artifacts (if any specific ones are generated besides executables)
+# e.g., if a build process created a temp build directory
+build/

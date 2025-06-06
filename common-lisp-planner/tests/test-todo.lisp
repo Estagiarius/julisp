@@ -31,7 +31,7 @@
       (is (string= (planner/todo:task-description (first planner/todo:*tasks*)) "Test Task 1"))
       (is (= (planner/todo:task-priority task) 1))
       (is (eq (planner/todo:task-status task) :pending)))
-    
+
     (with-clean-todo-data
       (let ((task2 (planner/todo:add-task :description "Test Task 2" :priority 2)))
         (is (not (null task2)))
@@ -90,7 +90,7 @@
             (task-completed-overdue (planner/todo:add-task :description "Completed Overdue" :due-date start-of-yesterday :status :completed))
             (task-future (planner/todo:add-task :description "Future Task" :due-date (+ start-of-tomorrow 3600) :status :pending))
             (task-no-due-date (planner/todo:add-task :description "No Due Date" :status :pending)))
-            
+
         (declare (ignorable task-completed-overdue task-future task-no-due-date))
 
         (let ((summary (planner/todo:get-pending-tasks-summary)))
@@ -102,7 +102,7 @@
             (is (= (length due-today-list) 2) "Checking number of due today tasks")
             (is (member task-due-today1 due-today-list :test #'eq) "Checking specific due today task 1")
             (is (member task-due-today2 due-today-list :test #'eq) "Checking specific due today task 2 (at 00:00)")
-            
+
             ;; Ensure other tasks are not included
             (is (not (member task-completed-overdue overdue-list)))
             (is (not (member task-completed-overdue due-today-list)))
@@ -110,7 +110,7 @@
             (is (not (member task-future due-today-list)))
             (is (not (member task-no-due-date overdue-list)))
             (is (not (member task-no-due-date due-today-list))))))
-        
+
     ;; Test with empty tasks list
     (with-clean-todo-data
         (let ((summary (planner/todo:get-pending-tasks-summary)))

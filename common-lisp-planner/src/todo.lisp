@@ -195,7 +195,7 @@ Prints tasks to standard output. Returns `t` if tasks were displayed, `nil` othe
          (setf filtered-tasks
                (remove-if-not (lambda (task) (= (task-priority task) filter-priority))
                               filtered-tasks))))
-    
+
     (unless filtered-tasks
       (format t "No tasks match your criteria.~%")
       (return-from view-tasks nil))
@@ -271,7 +271,7 @@ Returns `nil` for a category if no tasks match or if date calculations fail (e.g
       (warn "GET-PENDING-TASKS-SUMMARY: Could not determine start of today or tomorrow. Summary may be incomplete.")
       ;; Return with empty lists if date boundaries can't be established
       (return-from get-pending-tasks-summary (list :overdue-tasks nil :due-today-tasks nil)))
-      
+
     (dolist (task *tasks*)
       (when (and (eq (task-status task) :pending) ; Only consider pending tasks
                  (task-due-date task)
@@ -285,7 +285,7 @@ Returns `nil` for a category if no tasks match or if date calculations fail (e.g
             ((and (>= due-date start-of-today)
                   (< due-date start-of-tomorrow))
              (push task due-today-tasks))))))
-    
+
     (list :overdue-tasks (nreverse overdue-tasks) ; nreverse for chronological order if tasks are pushed
           :due-today-tasks (nreverse due-today-tasks))))
 
@@ -311,7 +311,7 @@ Returns a property list containing:
         (:pending (incf pending-tasks))
         ;; Other statuses (if any) contribute to total_tasks but not to completed/pending explicitly here
         ))
-    
+
     (let ((percentage-completed (if (zerop total-tasks) ; Avoid division by zero
                                     0.0
                                     (float (/ (* completed-tasks 100.0) total-tasks)))))

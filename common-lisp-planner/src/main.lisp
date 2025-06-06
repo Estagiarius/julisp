@@ -160,7 +160,7 @@ Prints success or error messages."
     (unless start-str
       (format t "Error: --start is required for add-event (YYYY-MM-DD HH:MM).~%")
       (return-from handle-add-event))
-    
+
     (let ((start-time (parse-datetime-string start-str))
           (end-time (parse-datetime-string end-str))
           (loc-id (when loc-id-str (parse-integer-arg loc-id-str "location ID"))))
@@ -204,7 +204,7 @@ Prints success or error messages."
 
       (when (and priority-str (null priority)) ; Error if priority string provided but failed parse
         (return-from handle-add-task))
-      
+
       (when (and due-date-str (null due-date)) ; Error if due date string provided but failed parse
         (format t "Error: Invalid due date format. Task not added.~%")
         (return-from handle-add-task))
@@ -232,9 +232,9 @@ Calls `planner/todo:view-tasks` with the processed arguments."
     (let ((sort-by (intern (string-upcase sort-by-str) :keyword))
           (filter-status (when filter-status-str (intern (string-upcase filter-status-str) :keyword)))
           (filter-priority (when filter-priority-str (parse-integer-arg filter-priority-str "filter priority"))))
-      
+
       (when (and filter-priority-str (null filter-priority)) ; Error if provided but failed parse
-        (return-from handle-view-tasks)) 
+        (return-from handle-view-tasks))
 
       (planner/todo:view-tasks :sort-by sort-by
                                :filter-status filter-status
@@ -266,7 +266,7 @@ Expects two positional arguments:
     (unless priority-str
       (format t "Error: New priority is required.~%")
       (return-from handle-set-task-priority))
-    
+
     (let ((id (parse-integer-arg id-str "task ID"))
           (priority (parse-integer-arg priority-str "priority")))
       (when (and id priority) ; Both must parse successfully
@@ -286,8 +286,8 @@ Displays a summary of overdue and due-today tasks by calling `planner/todo:get-p
           (progn
             (format t "  Overdue Tasks (~A):~%" (length overdue))
             (dolist (task overdue)
-              (format t "    ID: ~A, Due: ~A, Desc: ~A~%" 
-                      (planner/todo:task-id task) 
+              (format t "    ID: ~A, Due: ~A, Desc: ~A~%"
+                      (planner/todo:task-id task)
                       (planner/todo::format-task-due-date (planner/todo:task-due-date task))
                       (planner/todo:task-description task))))
           (format t "  No overdue tasks.~%"))
@@ -295,7 +295,7 @@ Displays a summary of overdue and due-today tasks by calling `planner/todo:get-p
           (progn
             (format t "  Tasks Due Today (~A):~%" (length due-today))
             (dolist (task due-today)
-              (format t "    ID: ~A, Prio: ~A, Desc: ~A~%" 
+              (format t "    ID: ~A, Prio: ~A, Desc: ~A~%"
                       (planner/todo:task-id task)
                       (planner/todo:task-priority task)
                       (planner/todo:task-description task))))
@@ -425,7 +425,7 @@ Displays counts of events in the specified past and future periods."
          (future-days-str (get-arg args :future-days "7"))
          (past-days (parse-integer-arg past-days-str "past-days"))
          (future-days (parse-integer-arg future-days-str "future-days")))
-    
+
     (when (and (not (null past-days)) (not (null future-days))) ; Both must parse successfully
         (let ((counts (planner/calendar:get-event-counts :past-days past-days :future-days future-days)))
           (format t "Event Counts:~%")
